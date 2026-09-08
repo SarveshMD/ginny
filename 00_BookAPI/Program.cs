@@ -26,6 +26,9 @@ app.MapGet("/books/{id}", (int id) =>
 
 app.MapPost("/books", (Book book) =>
 {
+    int new_id = books.Max(book => book.Id) + 1;
+
+    book.Id = new_id;
     books.Add(book);
 
     return Results.Created($"/books/{book.Id}", book);
