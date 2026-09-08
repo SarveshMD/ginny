@@ -1,6 +1,8 @@
 using _00_BookAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSingleton<IBookRepository, InMemoryBookRepository>();
+
 var app = builder.Build();
 
 var books = new List<Book> {
@@ -10,11 +12,11 @@ var books = new List<Book> {
 
 app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/books", () => books);
+app.MapGet("/books", (IBookRepository repository) => repository.GetAll());
 
-app.MapGet("/books/{id}", (int id) =>
+app.MapGet("/books/{id}", (int id, IBookRepository repository) =>
 {
-    Book? book = books.FirstOrDefault(book => book.Id == id);
+    Book? book = repository.GetById(id);
 
     if (book is null)
     {
@@ -24,43 +26,100 @@ app.MapGet("/books/{id}", (int id) =>
     return Results.Ok(book);
 });
 
-app.MapPost("/books", (Book book) =>
+app.MapPost("/books", (Book book, IBookRepository repository) =>
 {
-    int new_id = books.Max(book => book.Id) + 1;
+    var newBook = repository.Add(book);
 
-    book.Id = new_id;
-    books.Add(book);
-
-    return Results.Created($"/books/{book.Id}", book);
+    return Results.Created($"/books/{newBook.Id}", newBook);
 });
 
-app.MapPut("/books/{id}", (int id, Book newBook) =>
+app.MapPut("/books/{id}", (int id, Book book, IBookRepository repository) =>
 {
-    var book = books.FirstOrDefault(book => book.Id == id);
+    bool updated = repository.Update(id, book);
 
-    if (book is null)
-    {
-        return Results.NotFound();
-    }
+    return updated
+        ? Results.NoContent()
+        : Results.NotFound();
 
-    book.Title = newBook.Title;
-    book.Author = newBook.Author;
-    book.PublishedYear = newBook.PublishedYear;
-
-    return Results.NoContent();
 });
 
-app.MapDelete("/books/{id}", (int id) =>
+// TEMPORARY ENDPOINT TO CREATE TOY DATA
+app.MapGet("/books/CREATE_ALL", (IBookRepository repository) =>
 {
-    var book = books.FirstOrDefault(book => book.Id == id);
-
-    if (book is null)
+    foreach (var book in books)
     {
-        return Results.NotFound();
+        repository.Add(book);
     }
 
-    books.Remove(book);
-    return Results.NoContent();
+    return Results.Redirect("/books");
+});
+
+app.MapDelete("/books/{id}", (int id, IBookRepository repository) =>
+{
+    bool deleted = repository.Delete(id);
+
+    return deleted
+        ? Results.NoContent()
+        : Results.NotFound();
 });
 
 app.Run();
+
+public interface IBookRepository
+{
+    IEnumerable<Book> GetAll();
+    Book? GetById(int id);
+    Book Add(Book book);
+    bool Update(int id, Book book);
+    bool Delete(int id);
+}
+
+public class InMemoryBookRepository : IBookRepository
+{
+
+    private readonly List<Book> _books = new();
+
+    public IEnumerable<Book> GetAll()
+    {
+        return _books;
+    }
+
+    public Book? GetById(int id)
+    {
+        return _books.FirstOrDefault(book => book.Id == id);
+    }
+
+    public Book Add(Book book)
+    {
+        int newId = _books.Count == 0
+            ? 1
+            : _books.Max(book => book.Id) + 1;
+
+        var newBook = new Book(newId, book.Title, book.Author, book.PublishedYear);
+        _books.Add(newBook);
+        return newBook;
+    }
+
+    public bool Update(int id, Book book)
+    {
+        var old_book = _books.FirstOrDefault(book => book.Id == id);
+
+        if (old_book is null)
+        {
+            return false;
+        }
+
+        old_book.Title = book.Title;
+        old_book.Author = book.Author;
+        old_book.PublishedYear = book.PublishedYear;
+        return true;
+    }
+
+    public bool Delete(int id)
+    {
+        var book = _books.FirstOrDefault(book => book.Id == id);
+        if (book is null) return false;
+        _books.Remove(book);
+        return true;
+    }
+}
