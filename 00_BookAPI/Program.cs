@@ -31,4 +31,33 @@ app.MapPost("/books", (Book book) =>
     return Results.Created($"/books/{book.Id}", book);
 });
 
+app.MapPut("/books/{id}", (int id, Book newBook) =>
+{
+    var book = books.FirstOrDefault(book => book.Id == id);
+
+    if (book is null)
+    {
+        return Results.NotFound();
+    }
+
+    book.Title = newBook.Title;
+    book.Author = newBook.Author;
+    book.PublishedYear = newBook.PublishedYear;
+
+    return Results.NoContent();
+});
+
+app.MapDelete("/books/{id}", (int id) =>
+{
+    var book = books.FirstOrDefault(book => book.Id == id);
+
+    if (book is null)
+    {
+        return Results.NotFound();
+    }
+
+    books.Remove(book);
+    return Results.NoContent();
+});
+
 app.Run();
