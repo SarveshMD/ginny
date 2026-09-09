@@ -14,12 +14,9 @@ app.MapGet("/books/{id}", (int id, IBookRepository repository) =>
 {
     Book? book = repository.GetById(id);
 
-    if (book is null)
-    {
-        return Results.NotFound();
-    }
-
-    return Results.Ok(book);
+    return (book is null)
+        ? Results.NotFound()
+        : Results.Ok(book);
 });
 
 app.MapPost("/books", (Book book, IBookRepository repository) =>
