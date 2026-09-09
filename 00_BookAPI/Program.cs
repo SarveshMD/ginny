@@ -1,13 +1,19 @@
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+
 using _00_BookAPI.Data;
 using _00_BookAPI.Models;
 using _00_BookAPI.DTOs;
 
-using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<IBookRepository, InMemoryBookRepository>();
+// builder.Services.AddSingleton<IBookRepository, InMemoryBookRepository>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddDbContext<BookDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IBookRepository, EfBookRepository>();
 
 var app = builder.Build();
 
