@@ -8,22 +8,19 @@ using _00_BookAPI.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.Services.AddSingleton<IBookRepository, InMemoryBookRepository>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddDbContext<BookDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<IBookRepository, EfBookRepository>();
 
 var app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/books", (IBookRepository repository) => repository.GetAll());
+app.MapGet("/books", (BookDbContext db) => db.Books.ToList());
 
-app.MapGet("/books/{id}", (int id, IBookRepository repository) =>
+app.MapGet("/books/{id}", (int id, BookDbContext db) =>
 {
-    Book? book = repository.GetById(id);
+    Book? book = db.Books.Find(id);
 
     return (book is null)
         ? Results.NotFound()
@@ -32,8 +29,8 @@ app.MapGet("/books/{id}", (int id, IBookRepository repository) =>
 
 app.MapPost("/books", (
     CreateBookDto dto,
-    IValidator<CreateBookDto> validator,
-    IBookRepository repository) =>
+    BookDbContext db,
+    IValidator<CreateBookDto> validator) =>
 {
     var validationResult = validator.Validate(dto);
 
@@ -42,17 +39,18 @@ app.MapPost("/books", (
         return Results.ValidationProblem(validationResult.ToDictionary());
     }
 
-    var bookToCreate = new Book(0, dto.Title, dto.Author, dto.PublishedYear);
-    var createdBook = repository.Add(bookToCreate);
+    var book = new Book(0, dto.Title, dto.Author, dto.PublishedYear);
+    db.Books.Add(book);
+    db.SaveChanges();
 
-    return Results.Created($"/books/{createdBook.Id}", createdBook);
+    return Results.Created($"/books/{book.Id}", book);
 });
 
 app.MapPut("/books/{id}", (
     int id,
     CreateBookDto dto,
-    IValidator<CreateBookDto> validator,
-    IBookRepository repository) =>
+    BookDbContext db,
+    IValidator<CreateBookDto> validator) =>
 {
     var validationResult = validator.Validate(dto);
 
@@ -61,22 +59,36 @@ app.MapPut("/books/{id}", (
         return Results.ValidationProblem(validationResult.ToDictionary());
     }
 
-    var bookToUpdate = new Book(id, dto.Title, dto.Author, dto.PublishedYear);
-    bool updated = repository.Update(id, bookToUpdate);
-
-    return updated
-        ? Results.NoContent()
-        : Results.NotFound();
+    var book = db.Books.Find(id);
+    if (book is null)
+    {
+        return Results.NotFound();
+    }
+    else
+    {
+        book.Title = dto.Title;
+        book.Author = dto.Author;
+        book.PublishedYear = dto.PublishedYear;
+        db.SaveChanges();
+        return Results.NoContent();
+    }
 
 });
 
-app.MapDelete("/books/{id}", (int id, IBookRepository repository) =>
+app.MapDelete("/books/{id}", (int id, BookDbContext db) =>
 {
-    bool deleted = repository.Delete(id);
+    var book = db.Books.Find(id);
+    if (book is null)
+    {
+        return Results.NotFound();
+    }
+    else
+    {
+        db.Books.Remove(book);
+        db.SaveChanges();
+        return Results.NoContent();
+    }
 
-    return deleted
-        ? Results.NoContent()
-        : Results.NotFound();
 });
 
 app.Run();
