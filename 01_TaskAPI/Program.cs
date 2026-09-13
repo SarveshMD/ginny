@@ -84,4 +84,18 @@ app.MapPut("/tasks/{id}", (
     return Results.NoContent();
 });
 
+app.MapDelete("/tasks/{id}", (
+    int id,
+    TodoItemDbContext db) =>
+{
+    var todoItem = db.Todos.Find(id);
+    if (todoItem is null)
+    {
+        return Results.NotFound();
+    }
+    db.Todos.Remove(todoItem);
+    db.SaveChanges();
+    return Results.NoContent();
+});
+
 app.Run();
