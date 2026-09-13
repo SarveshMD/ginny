@@ -19,26 +19,32 @@ var app = builder.Build();
 
 app.MapGet("/", () => "u + me = <3");
 
-app.MapGet("/tasks", (TodoItemDbContext db) =>
+app.MapGet("/tasks", async (TodoItemDbContext db) =>
 {
-    return Results.Ok(db.Todos.ToList());
+    var tasks = await db.Todos
+        .AsNoTracking()
+        .ToListAsync();
+
+    return Results.Ok(tasks);
 });
 
-app.MapGet("/tasks/{id}", (int id, TodoItemDbContext db) =>
+app.MapGet("/tasks/{id}", async (int id, TodoItemDbContext db) =>
 {
-    var res = db.Todos.Find(id);
+    var res = await db.Todos
+        .AsNoTracking()
+        .FirstOrDefaultAsync(todo => todo.Id == id);
 
     return (res is null)
         ? Results.NotFound()
         : Results.Ok(res);
 });
 
-app.MapPost("/tasks", (
+app.MapPost("/tasks", async (
     CreateTodoItemDto todoItemDto,
     TodoItemDbContext db,
     IValidator<CreateTodoItemDto> validator) =>
 {
-    var validationResult = validator.Validate(todoItemDto);
+    var validationResult = await validator.ValidateAsync(todoItemDto);
 
     if (!validationResult.IsValid)
     {
@@ -53,24 +59,25 @@ app.MapPost("/tasks", (
     );
 
     db.Todos.Add(newTodoItem);
-    db.SaveChanges();
+    await db.SaveChangesAsync();
+
     return Results.Created($"/tasks/{newTodoItem.Id}", newTodoItem);
 });
 
-app.MapPut("/tasks/{id}", (
+app.MapPut("/tasks/{id}", async (
     int id,
     TodoItemDbContext db,
     IValidator<CreateTodoItemDto> validator,
     CreateTodoItemDto todoItemDto) =>
 {
-    var oldTodo = db.Todos.Find(id);
+    var oldTodo = await db.Todos.FindAsync(id);
 
     if (oldTodo is null)
     {
         return Results.NotFound();
     }
 
-    var validationResult = validator.Validate(todoItemDto);
+    var validationResult = await validator.ValidateAsync(todoItemDto);
     if (!validationResult.IsValid)
     {
         return Results.ValidationProblem(validationResult.ToDictionary());
@@ -80,21 +87,24 @@ app.MapPut("/tasks/{id}", (
     oldTodo.Description = todoItemDto.Description;
     oldTodo.DueAt = todoItemDto.DueAt?.ToUniversalTime();
 
-    db.SaveChanges();
+    await db.SaveChangesAsync();
+
     return Results.NoContent();
 });
 
-app.MapDelete("/tasks/{id}", (
+app.MapDelete("/tasks/{id}", async (
     int id,
     TodoItemDbContext db) =>
 {
-    var todoItem = db.Todos.Find(id);
+    var todoItem = await db.Todos.FindAsync(id);
     if (todoItem is null)
     {
         return Results.NotFound();
     }
+
     db.Todos.Remove(todoItem);
-    db.SaveChanges();
+    await db.SaveChangesAsync();
+
     return Results.NoContent();
 });
 
