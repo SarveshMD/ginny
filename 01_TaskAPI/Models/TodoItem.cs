@@ -14,7 +14,7 @@ class TodoItem
         Id = id;
         Title = title;
         Description = description ?? "";
-        DueAt = dueAt;
+        DueAt = dueAt?.ToUniversalTime();
 
         IsCompleted = false;
         CreatedAt = DateTime.UtcNow;
