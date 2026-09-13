@@ -1,24 +1,32 @@
 using _01_TaskAPI.Models;
 using _01_TaskAPI.DTOs;
+using _01_TaskAPI.Data;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<List<TodoItem>>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<TodoItemDbContext>(
+    optionsBuilder => optionsBuilder
+        .UseNpgsql(connectionString)
+        .UseSnakeCaseNamingConvention()
+);
 
 var app = builder.Build();
 
 app.MapGet("/", () => "u + me = <3");
 
-app.MapGet("/tasks", (List<TodoItem> todoList) =>
+app.MapGet("/tasks", (TodoItemDbContext db) =>
 {
-    return todoList;
+    return Results.Ok(db.Todos.ToList());
 });
 
 app.MapPost("/tasks", (
     CreateTodoItemDto todoItemDto,
-    List<TodoItem> todoList,
+    TodoItemDbContext db,
     IValidator<CreateTodoItemDto> validator) =>
 {
     var validationResult = validator.Validate(todoItemDto);
@@ -29,13 +37,14 @@ app.MapPost("/tasks", (
     }
 
     var newTodoItem = new TodoItem(
-        id: todoItemDto.Id,
+        0,
         title: todoItemDto.Title,
         description: todoItemDto.Description,
         dueAt: todoItemDto.DueAt
     );
 
-    todoList.Add(newTodoItem);
+    db.Todos.Add(newTodoItem);
+    db.SaveChanges();
     return Results.Created($"/tasks/{newTodoItem.Id}", newTodoItem);
 });
 
