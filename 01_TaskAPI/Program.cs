@@ -29,8 +29,8 @@ app.MapGet("/tasks/{id}", (int id, TodoItemDbContext db) =>
     var res = db.Todos.Find(id);
 
     return (res is null)
-        ? Results.Ok(res)
-        : Results.NotFound();
+        ? Results.NotFound()
+        : Results.Ok(res);
 });
 
 app.MapPost("/tasks", (
