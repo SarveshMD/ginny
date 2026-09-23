@@ -25,7 +25,10 @@ app.MapGet("/tasks", async (TodoItemDbContext db) =>
         .AsNoTracking()
         .ToListAsync();
 
-    return Results.Ok(tasks);
+    return Results.Ok(tasks
+        .Select(task => ResponseTodoItemDto.FromEntity(task))
+        .ToList()
+    );
 });
 
 app.MapGet("/tasks/{id}", async (int id, TodoItemDbContext db) =>
