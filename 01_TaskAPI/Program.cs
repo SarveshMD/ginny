@@ -32,11 +32,19 @@ app.MapGet("/tasks/{id}", async (int id, TodoItemDbContext db) =>
 {
     var res = await db.Todos
         .AsNoTracking()
-        .FirstOrDefaultAsync(todo => todo.Id == id);
+        .Where(todo => todo.Id == id)
+        .Select(todo => new ResponseTodoItemDto(
+            todo.Id,
+            todo.Title,
+            todo.Description,
+            todo.DueAt,
+            todo.IsCompleted
+        ))
+        .FirstOrDefaultAsync();
 
     return (res is null)
         ? Results.NotFound()
-        : Results.Ok(res);
+        : Results.Ok();
 });
 
 app.MapPost("/tasks", async (
@@ -61,7 +69,16 @@ app.MapPost("/tasks", async (
     db.Todos.Add(newTodoItem);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/tasks/{newTodoItem.Id}", newTodoItem);
+    return Results.Created(
+        $"/tasks/{newTodoItem.Id}",
+        new ResponseTodoItemDto(
+            newTodoItem.Id,
+            newTodoItem.Title,
+            newTodoItem.Description,
+            newTodoItem.DueAt,
+            newTodoItem.IsCompleted
+        )
+    );
 });
 
 app.MapPut("/tasks/{id}", async (
