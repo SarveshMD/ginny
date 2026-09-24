@@ -57,7 +57,6 @@ app.MapPost("/tasks", async (
     }
 
     var newTodoItem = new TodoItem(
-        0,
         title: todoItemDto.Title,
         description: todoItemDto.Description,
         dueAt: todoItemDto.DueAt

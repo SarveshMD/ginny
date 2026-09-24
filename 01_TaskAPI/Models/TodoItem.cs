@@ -9,9 +9,8 @@ public class TodoItem
     public bool IsCompleted { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 
-    public TodoItem(int id, string title, DateTimeOffset? dueAt, string description)
+    public TodoItem(string title, DateTimeOffset? dueAt, string description)
     {
-        Id = id;
         Title = title;
         Description = description ?? "";
         DueAt = dueAt?.ToUniversalTime();
