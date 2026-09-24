@@ -74,8 +74,8 @@ app.MapPost("/tasks", async (
 app.MapPut("/tasks/{id}", async (
     int id,
     TodoItemDbContext db,
-    IValidator<CreateTodoItemDto> validator,
-    CreateTodoItemDto todoItemDto) =>
+    IValidator<PutTodoItemDto> validator,
+    PutTodoItemDto todoItemDto) =>
 {
     var oldTodo = await db.Todos.FindAsync(id);
 
@@ -93,6 +93,7 @@ app.MapPut("/tasks/{id}", async (
     oldTodo.Title = todoItemDto.Title;
     oldTodo.Description = todoItemDto.Description;
     oldTodo.DueAt = todoItemDto.DueAt?.ToUniversalTime();
+    oldTodo.IsCompleted = todoItemDto.IsCompleted;
 
     await db.SaveChangesAsync();
 
