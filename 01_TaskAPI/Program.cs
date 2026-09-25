@@ -3,6 +3,7 @@ using _01_TaskAPI.DTOs;
 using _01_TaskAPI.Data;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using _01_TaskAPI.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +71,33 @@ app.MapPost("/tasks", async (
         ResponseTodoItemDto.FromEntity(newTodoItem)
     );
 });
+
+app.MapPatch("/tasks/{id}", async (
+    int id,
+    TodoItemDbContext db,
+    MarkTodoItemDtoValidator validator,
+    MarkTodoItemDto dto) =>
+{
+    var todoItem = await db.Todos.FindAsync(id);
+
+    if (todoItem is null)
+    {
+        return Results.NotFound();
+    }
+
+    var validationResult = await validator.ValidateAsync(dto);
+
+    if (!validationResult.IsValid)
+    {
+        return Results.ValidationProblem(validationResult.ToDictionary());
+    }
+
+    todoItem.IsCompleted = dto.IsCompleted!.Value;
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ResponseTodoItemDto.FromEntity(todoItem));
+});
+
 
 app.MapPut("/tasks/{id}", async (
     int id,
