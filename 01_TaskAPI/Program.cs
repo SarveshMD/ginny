@@ -72,7 +72,7 @@ app.MapPost("/tasks", async (
     );
 });
 
-app.MapPatch("/tasks/{id}", async (
+app.MapPatch("/tasks/{id}/mark", async (
     int id,
     TodoItemDbContext db,
     MarkTodoItemDtoValidator validator,
@@ -98,6 +98,32 @@ app.MapPatch("/tasks/{id}", async (
     return Results.Ok(ResponseTodoItemDto.FromEntity(todoItem));
 });
 
+
+app.MapPatch("/tasks/{id}/due", async (
+    int id,
+    TodoItemDbContext db,
+    DueTodoItemDtoValidator validator,
+    DueTodoItemDto dto) =>
+{
+    var todoItem = await db.Todos.FindAsync(id);
+
+    if (todoItem is null)
+    {
+        return Results.NotFound();
+    }
+
+    var validationResult = await validator.ValidateAsync(dto);
+
+    if (!validationResult.IsValid)
+    {
+        return Results.ValidationProblem(validationResult.ToDictionary());
+    }
+
+    todoItem.DueAt = dto.DueAt;
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ResponseTodoItemDto.FromEntity(todoItem));
+});
 
 app.MapPut("/tasks/{id}", async (
     int id,
