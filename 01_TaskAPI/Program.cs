@@ -20,15 +20,53 @@ var app = builder.Build();
 
 app.MapGet("/", () => "u + me = <3");
 
-app.MapGet("/tasks", async (TodoItemDbContext db) =>
+app.MapGet("/tasksAll", async (
+    TodoItemDbContext db) =>
 {
-    var tasks = await db.Todos
+    return Results.Ok(await db.Todos
         .AsNoTracking()
+        .ToListAsync());
+});
+
+app.MapGet("/tasks", async (
+    TodoItemDbContext db,
+    [AsParameters] TaskQueryParameters query,
+    TaskQueryParametersValidator validator) =>
+{
+    var validationResult = await validator.ValidateAsync(query);
+
+    if (!validationResult.IsValid)
+    {
+        return Results.ValidationProblem(validationResult.ToDictionary());
+    }
+
+    var queryable = db.Todos.AsNoTracking();
+
+    if (query.isCompleted is not null)
+    {
+        queryable = queryable.Where(task => task.IsCompleted == query.isCompleted);
+    }
+
+    if (query.dueBefore is not null)
+    {
+        queryable = queryable.Where(task => task.DueAt <= query.dueBefore);
+    }
+
+    if (query.dueAfter is not null)
+    {
+        queryable = queryable.Where(task => task.DueAt >= query.dueAfter);
+    }
+
+    // TODO: implement sortBy and isDescending
+
+    var tasks = await queryable
+        .OrderBy(task => task.Id)
+        .Skip((query.page - 1) * query.pageSize)
+        .Take(query.pageSize)
         .ToListAsync();
 
     return Results.Ok(tasks
         .Select(task => ResponseTodoItemDto.FromEntity(task))
-        .ToList()
     );
 });
 
