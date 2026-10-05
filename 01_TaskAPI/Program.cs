@@ -18,14 +18,32 @@ builder.Services.AddDbContext<TodoItemDbContext>(
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    var sw = System.Diagnostics.Stopwatch.StartNew();
+    await next(context);
+    sw.Stop();
+
+    Console.WriteLine($"Request [{context.Request.Path}] took {sw.ElapsedMilliseconds} ms");
+});
+
 app.MapGet("/", () => "u + me = <3");
 
 app.MapGet("/tasksAll", async (
-    TodoItemDbContext db) =>
+    TodoItemDbContext db,
+    CancellationToken ct) =>
 {
-    return Results.Ok(await db.Todos
+    await Task.Delay(5000, ct);
+    Console.WriteLine("Await ran fully...");
+
+    var res = await db.Todos
         .AsNoTracking()
-        .ToListAsync());
+        .Select(item => ResponseTodoItemDto.FromEntity(item))
+        .ToListAsync(ct);
+
+    Console.WriteLine("Response is ready...");
+
+    return Results.Ok(res);
 });
 
 app.MapGet("/tasks", async (
