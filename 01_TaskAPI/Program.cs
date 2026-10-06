@@ -88,7 +88,7 @@ app.MapGet("/tasks", async (
     );
 });
 
-app.MapGet("/tasks/{id}", async (int id, TodoItemDbContext db) =>
+app.MapGet("/tasks/{id:guid}", async (Guid id, TodoItemDbContext db) =>
 {
     var res = await db.Todos
         .AsNoTracking()
@@ -128,8 +128,8 @@ app.MapPost("/tasks", async (
     );
 });
 
-app.MapPatch("/tasks/{id}/mark", async (
-    int id,
+app.MapPatch("/tasks/{id:guid}/mark", async (
+    Guid id,
     TodoItemDbContext db,
     MarkTodoItemDtoValidator validator,
     MarkTodoItemDto dto) =>
@@ -155,8 +155,8 @@ app.MapPatch("/tasks/{id}/mark", async (
 });
 
 
-app.MapPatch("/tasks/{id}/due", async (
-    int id,
+app.MapPatch("/tasks/{id:guid}/due", async (
+    Guid id,
     TodoItemDbContext db,
     DueTodoItemDtoValidator validator,
     DueTodoItemDto dto) =>
@@ -181,8 +181,8 @@ app.MapPatch("/tasks/{id}/due", async (
     return Results.Ok(ResponseTodoItemDto.FromEntity(todoItem));
 });
 
-app.MapPut("/tasks/{id}", async (
-    int id,
+app.MapPut("/tasks/{id:guid}", async (
+    Guid id,
     TodoItemDbContext db,
     IValidator<PutTodoItemDto> validator,
     PutTodoItemDto todoItemDto) =>
@@ -210,8 +210,8 @@ app.MapPut("/tasks/{id}", async (
     return Results.NoContent();
 });
 
-app.MapDelete("/tasks/{id}", async (
-    int id,
+app.MapDelete("/tasks/{id:guid}", async (
+    Guid id,
     TodoItemDbContext db) =>
 {
     var todoItem = await db.Todos.FindAsync(id);

@@ -3,7 +3,7 @@ using _01_TaskAPI.Models;
 namespace _01_TaskAPI.DTOs;
 
 public record ResponseTodoItemDto(
-    int Id,
+    Guid Id,
     string Title,
     string Description,
     DateTimeOffset? DueAt,
