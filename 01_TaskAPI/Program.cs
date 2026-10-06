@@ -10,10 +10,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<TodoItemDbContext>(
-    optionsBuilder => optionsBuilder
-        .UseNpgsql(connectionString)
-        .UseSnakeCaseNamingConvention()
+builder.Services.AddDbContext<TodoItemDbContext>(optionsBuilder =>
+    {
+        optionsBuilder
+            .UseNpgsql(connectionString)
+            .UseSnakeCaseNamingConvention();
+
+        if (builder.Environment.IsDevelopment())
+        {
+            optionsBuilder
+                .EnableSensitiveDataLogging()
+                .LogTo(Console.WriteLine, LogLevel.Information);
+        }
+    }
 );
 
 var app = builder.Build();
