@@ -10,4 +10,13 @@ class TodoItemDbContext : DbContext
     }
 
     public DbSet<TodoItem> Todos => Set<TodoItem>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(TodoItemDbContext).Assembly);
+
+    }
 }
