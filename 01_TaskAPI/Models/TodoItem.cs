@@ -9,6 +9,8 @@ public class TodoItem
     public bool IsCompleted { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 
+    public ICollection<SubTask> SubTasks { get; set; } = new List<SubTask>();
+
     public TodoItem(string title, DateTimeOffset? dueAt, string description)
     {
         Title = title;

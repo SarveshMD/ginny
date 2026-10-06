@@ -38,6 +38,32 @@ app.Use(async (context, next) =>
 
 app.MapGet("/", () => "u + me = <3");
 
+app.MapGet("/tasksDeep", async (
+    TodoItemDbContext db,
+    CancellationToken ct) =>
+{
+    var tasks = await db.Todos
+        .AsNoTracking()
+        .Select(t => new
+        {
+            t.Id,
+            t.Title,
+            t.Description,
+            t.IsCompleted,
+            t.DueAt,
+            SubTasks = t.SubTasks.Select(s => new
+            {
+                s.Id,
+                s.Title,
+                s.IsCompleted,
+                s.TodoItemId
+            })
+        })
+        .ToListAsync(ct);
+
+    return Results.Ok(tasks);
+});
+
 app.MapGet("/tasksAll", async (
     TodoItemDbContext db,
     CancellationToken ct) =>
