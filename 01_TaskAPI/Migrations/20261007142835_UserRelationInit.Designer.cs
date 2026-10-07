@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using _01_TaskAPI.Data;
@@ -11,9 +12,11 @@ using _01_TaskAPI.Data;
 namespace _01_TaskAPI.Migrations
 {
     [DbContext(typeof(TodoItemDbContext))]
-    partial class TodoItemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261007142835_UserRelationInit")]
+    partial class UserRelationInit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -89,7 +92,7 @@ namespace _01_TaskAPI.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("title");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
@@ -154,8 +157,6 @@ namespace _01_TaskAPI.Migrations
                     b.HasOne("_01_TaskAPI.Models.User", "User")
                         .WithMany("TodoItems")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
                         .HasConstraintName("fk_todos_users_user_id");
 
                     b.Navigation("User");

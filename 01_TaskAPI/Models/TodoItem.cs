@@ -9,20 +9,19 @@ public class TodoItem
     public bool IsCompleted { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 
+    public Guid UserId { get; set; }
+    public User User { get; set; } = null!;
+
     public ICollection<SubTask> SubTasks { get; set; } = new List<SubTask>();
 
-    // For EFCore to generate TodoItem and populate them with rows from PostgreSQL
-    private TodoItem() { }
-
-    // For our application endpoints
-    public TodoItem(string title, DateTimeOffset? dueAt, string description)
+    public TodoItem(string title, DateTimeOffset? dueAt, string description, Guid userId)
     {
-        Id = Guid.NewGuid();
         Title = title;
         Description = description ?? "";
         DueAt = dueAt?.ToUniversalTime();
 
         IsCompleted = false;
         CreatedAt = DateTime.UtcNow;
+        UserId = userId;
     }
 }

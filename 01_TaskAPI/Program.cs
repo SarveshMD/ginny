@@ -51,6 +51,8 @@ app.MapGet("/tasksDeep", async (
             t.Description,
             t.IsCompleted,
             t.DueAt,
+            t.User,
+            t.UserId,
             SubTasks = t.SubTasks.Select(s => new
             {
                 s.Id,
@@ -151,7 +153,8 @@ app.MapPost("/tasks", async (
     var newTodoItem = new TodoItem(
         title: todoItemDto.Title,
         description: todoItemDto.Description,
-        dueAt: todoItemDto.DueAt
+        dueAt: todoItemDto.DueAt,
+        userId: todoItemDto.UserId
     );
 
     db.Todos.Add(newTodoItem);
@@ -259,6 +262,32 @@ app.MapDelete("/tasks/{id:guid}", async (
     await db.SaveChangesAsync();
 
     return Results.NoContent();
+});
+
+app.MapPost("/users", async (
+    CreateUserDto userDto,
+    TodoItemDbContext db,
+    CreateUserDtoValidator validator) =>
+{
+    var validationResult = await validator.ValidateAsync(userDto);
+
+    if (!validationResult.IsValid)
+    {
+        return Results.ValidationProblem(validationResult.ToDictionary());
+    }
+
+    var newUser = new User(
+        userDto.Name,
+        userDto.Email,
+        "JUST A DUMMY STRING FOR NOW"
+    );
+
+    db.Users.Add(newUser);
+    await db.SaveChangesAsync();
+
+    return Results.Created(
+        $"/users/{newUser.Id}",
+        newUser);
 });
 
 app.Run();

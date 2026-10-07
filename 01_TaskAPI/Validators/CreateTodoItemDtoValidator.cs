@@ -23,5 +23,9 @@ public class CreateTodoItemDtoValidator : AbstractValidator<CreateTodoItemDto>
 
         RuleFor(x => x.DueAt)
             .GreaterThan(DateTime.UtcNow).WithMessage("DueAt cannot be in the past");
+
+        RuleFor(x => x.UserId)
+            .NotEmpty().WithMessage("User ID is required")
+            .NotEqual(Guid.Empty).WithMessage("A valid User ID is required");
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using _01_TaskAPI.Data;
@@ -11,9 +12,11 @@ using _01_TaskAPI.Data;
 namespace _01_TaskAPI.Migrations
 {
     [DbContext(typeof(TodoItemDbContext))]
-    partial class TodoItemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261007160726_UserRelationCommited")]
+    partial class UserRelationCommited
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

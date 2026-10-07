@@ -1,0 +1,67 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace _01_TaskAPI.Migrations
+{
+    /// <inheritdoc />
+    public partial class UserRelationInit : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<Guid>(
+                name: "user_id",
+                table: "todos",
+                type: "uuid",
+                nullable: true);
+
+            migrationBuilder.CreateTable(
+                name: "users",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    password_hash = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_users", x => x.id);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_todos_user_id",
+                table: "todos",
+                column: "user_id");
+
+            migrationBuilder.AddForeignKey(
+                name: "fk_todos_users_user_id",
+                table: "todos",
+                column: "user_id",
+                principalTable: "users",
+                principalColumn: "id");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropForeignKey(
+                name: "fk_todos_users_user_id",
+                table: "todos");
+
+            migrationBuilder.DropTable(
+                name: "users");
+
+            migrationBuilder.DropIndex(
+                name: "ix_todos_user_id",
+                table: "todos");
+
+            migrationBuilder.DropColumn(
+                name: "user_id",
+                table: "todos");
+        }
+    }
+}

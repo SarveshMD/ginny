@@ -11,12 +11,12 @@ class TodoItemDbContext : DbContext
 
     public DbSet<TodoItem> Todos => Set<TodoItem>();
     public DbSet<SubTask> SubTasks => Set<SubTask>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TodoItemDbContext).Assembly);
-
     }
 }
