@@ -11,8 +11,13 @@ public class TodoItem
 
     public ICollection<SubTask> SubTasks { get; set; } = new List<SubTask>();
 
+    // For EFCore to generate TodoItem and populate them with rows from PostgreSQL
+    private TodoItem() { }
+
+    // For our application endpoints
     public TodoItem(string title, DateTimeOffset? dueAt, string description)
     {
+        Id = Guid.NewGuid();
         Title = title;
         Description = description ?? "";
         DueAt = dueAt?.ToUniversalTime();
