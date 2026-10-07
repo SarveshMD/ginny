@@ -68,8 +68,8 @@ app.MapGet("/tasksAll", async (
     TodoItemDbContext db,
     CancellationToken ct) =>
 {
-    await Task.Delay(5000, ct);
-    Console.WriteLine("Await ran fully...");
+    // await Task.Delay(5000, ct);
+    // Console.WriteLine("Await ran fully...");
 
     var res = await db.Todos
         .AsNoTracking()
