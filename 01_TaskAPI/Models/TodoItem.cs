@@ -14,8 +14,11 @@ public class TodoItem
 
     public ICollection<SubTask> SubTasks { get; set; } = new List<SubTask>();
 
-    public TodoItem(string title, DateTimeOffset? dueAt, string description, Guid userId)
+    private TodoItem() { }
+
+    public TodoItem(Guid id, string title, DateTimeOffset? dueAt, string description, Guid userId)
     {
+        Id = id;
         Title = title;
         Description = description ?? "";
         DueAt = dueAt?.ToUniversalTime();

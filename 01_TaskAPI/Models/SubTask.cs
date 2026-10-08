@@ -11,4 +11,6 @@ public class SubTask
 
     public TodoItem TodoItem { get; set; } = null!; // Navigation
 
+    // Guid generation handled by postgres because i've not written POST endpoints for this
+
 }

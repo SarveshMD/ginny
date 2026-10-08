@@ -12,8 +12,9 @@ public class User
 
     private User() { }
 
-    public User(string name, string email, string passwordHash)
+    public User(Guid id, string name, string email, string passwordHash)
     {
+        Id = id;
         Name = name;
         Email = email;
         PasswordHash = passwordHash;

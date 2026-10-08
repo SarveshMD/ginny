@@ -151,6 +151,7 @@ app.MapPost("/tasks", async (
     }
 
     var newTodoItem = new TodoItem(
+        id: Guid.NewGuid(),
         title: todoItemDto.Title,
         description: todoItemDto.Description,
         dueAt: todoItemDto.DueAt,
@@ -264,30 +265,31 @@ app.MapDelete("/tasks/{id:guid}", async (
     return Results.NoContent();
 });
 
-app.MapPost("/users", async (
-    CreateUserDto userDto,
-    TodoItemDbContext db,
-    CreateUserDtoValidator validator) =>
-{
-    var validationResult = await validator.ValidateAsync(userDto);
+// app.MapPost("/users", async (
+//     CreateUserDto userDto,
+//     TodoItemDbContext db,
+//     CreateUserDtoValidator validator) =>
+// {
+//     var validationResult = await validator.ValidateAsync(userDto);
 
-    if (!validationResult.IsValid)
-    {
-        return Results.ValidationProblem(validationResult.ToDictionary());
-    }
+//     if (!validationResult.IsValid)
+//     {
+//         return Results.ValidationProblem(validationResult.ToDictionary());
+//     }
 
-    var newUser = new User(
-        userDto.Name,
-        userDto.Email,
-        "JUST A DUMMY STRING FOR NOW"
-    );
+//     var newUser = new User(
+//         id: Guid.NewGuid(),
+//         name: userDto.Name,
+//         email: userDto.Email,
+//         passwordHash: "JUST A DUMMY STRING FOR NOW"
+//     );
 
-    db.Users.Add(newUser);
-    await db.SaveChangesAsync();
+//     db.Users.Add(newUser);
+//     await db.SaveChangesAsync();
 
-    return Results.Created(
-        $"/users/{newUser.Id}",
-        newUser);
-});
+//     return Results.Created(
+//         $"/users/{newUser.Id}",
+//         newUser);
+// });
 
 app.Run();
