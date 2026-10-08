@@ -265,31 +265,68 @@ app.MapDelete("/tasks/{id:guid}", async (
     return Results.NoContent();
 });
 
-// app.MapPost("/users", async (
-//     CreateUserDto userDto,
-//     TodoItemDbContext db,
-//     CreateUserDtoValidator validator) =>
-// {
-//     var validationResult = await validator.ValidateAsync(userDto);
+app.MapPost("/api/auth/register", async (
+    RegisterRequestDto dto,
+    TodoItemDbContext db
+) =>
+{
+    var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
 
-//     if (!validationResult.IsValid)
-//     {
-//         return Results.ValidationProblem(validationResult.ToDictionary());
-//     }
+    var emailExists = await db.Users.AnyAsync(u => u.Email == normalizedEmail);
+    if (emailExists)
+    {
+        return Results.Conflict("Email is already registered");
+    }
 
-//     var newUser = new User(
-//         id: Guid.NewGuid(),
-//         name: userDto.Name,
-//         email: userDto.Email,
-//         passwordHash: "JUST A DUMMY STRING FOR NOW"
-//     );
+    string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-//     db.Users.Add(newUser);
-//     await db.SaveChangesAsync();
+    var user = new User(
+        id: Guid.NewGuid(),
+        name: dto.Name,
+        email: dto.Email,
+        passwordHash: passwordHash
+    );
 
-//     return Results.Created(
-//         $"/users/{newUser.Id}",
-//         newUser);
-// });
+    db.Users.Add(user);
+
+    await db.SaveChangesAsync();
+
+    return Results.Accepted($"/users/{user.Id}", new
+    {
+        user.Id,
+        user.Name,
+        user.Email
+    });
+});
+
+app.MapPost("/api/auth/login", async (
+    LoginRequestDto dto,
+    TodoItemDbContext db
+) =>
+{
+    var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+    var user = await db.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+
+    if (user is null)
+    {
+        return Results.Unauthorized();
+    }
+
+    bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+
+    if (!isPasswordValid)
+    {
+        return Results.Unauthorized();
+    }
+
+    return Results.Ok(new
+    {
+        Message = "Login Successful",
+        user.Id,
+        user.Email,
+        user.Name
+    });
+});
+
 
 app.Run();
