@@ -37,8 +37,8 @@ public class TokenService : ITokenService
         {
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddMinutes(expiryMinutes),
-            Issuer = _config["Issuer"],
-            Audience = _config["Audience"],
+            Issuer = _config["Jwt:Issuer"],
+            Audience = _config["Jwt:Audience"],
             SigningCredentials = credentials
         };
 

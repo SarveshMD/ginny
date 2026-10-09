@@ -1,10 +1,16 @@
 using _01_TaskAPI.Models;
 using _01_TaskAPI.DTOs;
 using _01_TaskAPI.Data;
-using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using _01_TaskAPI.Validators;
 using _01_TaskAPI.Services;
+using _01_TaskAPI.Extensions;
+
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +34,40 @@ builder.Services.AddDbContext<TodoItemDbContext>(optionsBuilder =>
     }
 );
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    var jwtSettings = builder.Configuration.GetSection("Jwt");
+    var secretKey = jwtSettings["Key"]
+        ?? throw new InvalidOperationException("JWT Secret Key missing in Config");
+
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwtSettings["Issuer"],
+
+        ValidateAudience = true,
+        ValidAudience = jwtSettings["Audience"],
+
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+builder.Services.AddAuthorization();
+
+
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Use(async (context, next) =>
 {
@@ -89,7 +128,8 @@ app.MapGet("/tasksAll", async (
 app.MapGet("/tasks", async (
     TodoItemDbContext db,
     [AsParameters] TaskQueryParameters query,
-    TaskQueryParametersValidator validator) =>
+    TaskQueryParametersValidator validator,
+    ClaimsPrincipal user) =>
 {
     var validationResult = await validator.ValidateAsync(query);
 
@@ -98,7 +138,11 @@ app.MapGet("/tasks", async (
         return Results.ValidationProblem(validationResult.ToDictionary());
     }
 
-    var queryable = db.Todos.AsNoTracking();
+    var userId = user.GetUserId();
+
+    var queryable = db.Todos
+        .AsNoTracking()
+        .Where(task => task.UserId == userId);
 
     if (query.isCompleted is not null)
     {
@@ -126,7 +170,8 @@ app.MapGet("/tasks", async (
     return Results.Ok(tasks
         .Select(task => ResponseTodoItemDto.FromEntity(task))
     );
-});
+})
+.RequireAuthorization();
 
 app.MapGet("/tasks/{id:guid}", async (Guid id, TodoItemDbContext db) =>
 {
