@@ -4,10 +4,13 @@ using _01_TaskAPI.Data;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using _01_TaskAPI.Validators;
+using _01_TaskAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<TodoItemDbContext>(optionsBuilder =>
@@ -267,7 +270,8 @@ app.MapDelete("/tasks/{id:guid}", async (
 
 app.MapPost("/api/auth/register", async (
     RegisterRequestDto dto,
-    TodoItemDbContext db
+    TodoItemDbContext db,
+    ITokenService tokenService
 ) =>
 {
     var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
@@ -291,17 +295,22 @@ app.MapPost("/api/auth/register", async (
 
     await db.SaveChangesAsync();
 
+    string token = tokenService.GenerateToken(user);
+
     return Results.Accepted($"/users/{user.Id}", new
     {
+        Message = "Registration successful",
         user.Id,
+        user.Email,
         user.Name,
-        user.Email
+        Token = token
     });
 });
 
 app.MapPost("/api/auth/login", async (
     LoginRequestDto dto,
-    TodoItemDbContext db
+    TodoItemDbContext db,
+    ITokenService tokenService
 ) =>
 {
     var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
@@ -319,12 +328,15 @@ app.MapPost("/api/auth/login", async (
         return Results.Unauthorized();
     }
 
+    string token = tokenService.GenerateToken(user);
+
     return Results.Ok(new
     {
         Message = "Login Successful",
         user.Id,
         user.Email,
-        user.Name
+        user.Name,
+        Token = token
     });
 });
 

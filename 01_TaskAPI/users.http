@@ -1,0 +1,20 @@
+
+### CREATE USER test1
+POST http://localhost:5055/api/auth/register
+Content-Type: application/json
+
+{
+    "name": "Harriot Dibble",
+    "email": "hdibble@oraxys.abc",
+    "password": "is this a password?"
+}
+
+
+### LOGIN AS test1
+POST http://localhost:5055/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "hdibble@oraxys.abc",
+    "password": "is this a password?"
+}
