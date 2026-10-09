@@ -39,3 +39,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZjAyZTJiO
 
 ### GET non-restricted routes
 GET http://localhost:5055/tasksDeep
+
+### GET /tasks without Authorization [401 Unauthorized]
+GET http://localhost:5055/tasks
