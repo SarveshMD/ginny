@@ -189,7 +189,8 @@ app.MapGet("/tasks/{id:guid}", async (Guid id, TodoItemDbContext db) =>
 app.MapPost("/tasks", async (
     CreateTodoItemDto todoItemDto,
     TodoItemDbContext db,
-    IValidator<CreateTodoItemDto> validator) =>
+    IValidator<CreateTodoItemDto> validator,
+    ClaimsPrincipal user) =>
 {
     var validationResult = await validator.ValidateAsync(todoItemDto);
 
@@ -198,12 +199,14 @@ app.MapPost("/tasks", async (
         return Results.ValidationProblem(validationResult.ToDictionary());
     }
 
+    Guid userId = user.GetUserId();
+
     var newTodoItem = new TodoItem(
         id: Guid.NewGuid(),
         title: todoItemDto.Title,
         description: todoItemDto.Description,
         dueAt: todoItemDto.DueAt,
-        userId: todoItemDto.UserId
+        userId: userId
     );
 
     db.Todos.Add(newTodoItem);
@@ -213,7 +216,8 @@ app.MapPost("/tasks", async (
         $"/tasks/{newTodoItem.Id}",
         ResponseTodoItemDto.FromEntity(newTodoItem)
     );
-});
+})
+.RequireAuthorization();
 
 app.MapPatch("/tasks/{id:guid}/mark", async (
     Guid id,

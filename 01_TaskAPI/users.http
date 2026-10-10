@@ -29,16 +29,37 @@ Content-Type: application/json
     "password": "isabelle"
 }
 
+### POST /api/auth/login AS jeremiah
+POST http://localhost:5055/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "jfisher@tsitp.com",
+    "password": "isabelle"
+}
+
+
 ### GET /tasks AS jeremiah
 GET http://localhost:5055/tasks
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5N2Q5NTkzNi0yNTBlLTQ0ZDUtYTBiOS1mNThlZWM5OTRmNGEiLCJlbWFpbCI6ImpmaXNoZXJAdHNpdHAuY29tIiwianRpIjoiMzdhMDk0ZWEtOWI5MC00Yjg2LThiMWYtMWM2ZTk4YjYyZWVkIiwibmFtZSI6IkplcmVtaWFoIEZpc2hlciIsIm5iZiI6MTc5MTU1MDExMiwiZXhwIjoxNzkxNTUzNzEyLCJpYXQiOjE3OTE1NTAxMTIsImlzcyI6IlRhc2tBcGkiLCJhdWQiOiJUYXNrQXBpQ2xpZW50In0.mAVHGz0mSK_q17BWYO_9Fu5xb3P2Y-PSpWPlIhkAuJA
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5N2Q5NTkzNi0yNTBlLTQ0ZDUtYTBiOS1mNThlZWM5OTRmNGEiLCJlbWFpbCI6ImpmaXNoZXJAdHNpdHAuY29tIiwianRpIjoiOTNiNDI5ZjAtZjc0Ny00YTAxLWE2YTctOTVhN2UwNjBiZmEyIiwibmFtZSI6IkplcmVtaWFoIEZpc2hlciIsIm5iZiI6MTc5MTYzMDkxNCwiZXhwIjoxNzkxNjM0NTE0LCJpYXQiOjE3OTE2MzA5MTQsImlzcyI6IlRhc2tBcGkiLCJhdWQiOiJUYXNrQXBpQ2xpZW50In0.L_HZ5K6yxA7KHZSNPqVRwwrEatUgGuxLV_pRtpNa5k8
 
 ### GET /tasks AS harriot
 GET http://localhost:5055/tasks
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZjAyZTJiOC0wMGMyLTQ0NzQtYjMxMC1iN2U5OTk0YzYzNGQiLCJlbWFpbCI6ImhkaWJibGVAb3JheHlzLmFiYyIsImp0aSI6ImQ0YTMwM2VmLTg3MzMtNDFjYi04NGNhLWI4NTM2MzgwMzdhOCIsIm5hbWUiOiJIYXJyaW90IERpYmJsZSIsIm5iZiI6MTc5MTU1MDU5OCwiZXhwIjoxNzkxNTU0MTk4LCJpYXQiOjE3OTE1NTA1OTgsImlzcyI6IlRhc2tBcGkiLCJhdWQiOiJUYXNrQXBpQ2xpZW50In0.pYwED1VYM5bdMHYpInjR5LLekIoEWGOwHsoE6nVuPxw
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZjAyZTJiOC0wMGMyLTQ0NzQtYjMxMC1iN2U5OTk0YzYzNGQiLCJlbWFpbCI6ImhkaWJibGVAb3JheHlzLmFiYyIsImp0aSI6IjFjZGM1ZWFkLTA4OTQtNGI1Ny04Y2NmLTMwZDg3YzRlYTdlOCIsIm5hbWUiOiJIYXJyaW90IERpYmJsZSIsIm5iZiI6MTc5MTYzMDQzMSwiZXhwIjoxNzkxNjM0MDMxLCJpYXQiOjE3OTE2MzA0MzEsImlzcyI6IlRhc2tBcGkiLCJhdWQiOiJUYXNrQXBpQ2xpZW50In0.k69lhi_2Uy3XSCgXKpCwA8rXT-TkOJdLinQJA0NvJKY
 
 ### GET non-restricted routes
 GET http://localhost:5055/tasksDeep
 
 ### GET /tasks without Authorization [401 Unauthorized]
 GET http://localhost:5055/tasks
+
+### POST /tasks AS harriot
+POST http://localhost:5055/tasks
+Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZjAyZTJiOC0wMGMyLTQ0NzQtYjMxMC1iN2U5OTk0YzYzNGQiLCJlbWFpbCI6ImhkaWJibGVAb3JheHlzLmFiYyIsImp0aSI6IjFjZGM1ZWFkLTA4OTQtNGI1Ny04Y2NmLTMwZDg3YzRlYTdlOCIsIm5hbWUiOiJIYXJyaW90IERpYmJsZSIsIm5iZiI6MTc5MTYzMDQzMSwiZXhwIjoxNzkxNjM0MDMxLCJpYXQiOjE3OTE2MzA0MzEsImlzcyI6IlRhc2tBcGkiLCJhdWQiOiJUYXNrQXBpQ2xpZW50In0.k69lhi_2Uy3XSCgXKpCwA8rXT-TkOJdLinQJA0NvJKY
+
+{
+    "title": "junk",
+    "description": "testing out this endpoint for harriot",
+    "dueAt": "2026-10-12T12:00Z"
+}

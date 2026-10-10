@@ -7,7 +7,8 @@ public record ResponseTodoItemDto(
     string Title,
     string Description,
     DateTimeOffset? DueAt,
-    bool IsCompleted
+    bool IsCompleted,
+    Guid userId
 )
 {
     public static ResponseTodoItemDto FromEntity(TodoItem todoItem) =>
@@ -16,6 +17,7 @@ public record ResponseTodoItemDto(
             todoItem.Title,
             todoItem.Description,
             todoItem.DueAt,
-            todoItem.IsCompleted
+            todoItem.IsCompleted,
+            todoItem.UserId
         );
 }
