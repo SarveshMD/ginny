@@ -173,18 +173,24 @@ app.MapGet("/tasks", async (
 })
 .RequireAuthorization();
 
-app.MapGet("/tasks/{id:guid}", async (Guid id, TodoItemDbContext db) =>
+app.MapGet("/tasks/{id:guid}", async (
+    Guid id,
+    TodoItemDbContext db,
+    ClaimsPrincipal user) =>
 {
+    Guid userId = user.GetUserId();
+
     var res = await db.Todos
         .AsNoTracking()
-        .Where(todo => todo.Id == id)
+        .Where(todo => todo.Id == id && todo.UserId == userId)
         .Select(todo => ResponseTodoItemDto.FromEntity(todo))
         .FirstOrDefaultAsync();
 
     return (res is null)
         ? Results.NotFound()
         : Results.Ok(res);
-});
+})
+.RequireAuthorization();
 
 app.MapPost("/tasks", async (
     CreateTodoItemDto todoItemDto,
@@ -223,42 +229,42 @@ app.MapPatch("/tasks/{id:guid}/mark", async (
     Guid id,
     TodoItemDbContext db,
     MarkTodoItemDtoValidator validator,
-    MarkTodoItemDto dto) =>
+    MarkTodoItemDto dto,
+    ClaimsPrincipal user) =>
 {
-    var todoItem = await db.Todos.FindAsync(id);
-
-    if (todoItem is null)
-    {
-        return Results.NotFound();
-    }
-
     var validationResult = await validator.ValidateAsync(dto);
 
     if (!validationResult.IsValid)
     {
         return Results.ValidationProblem(validationResult.ToDictionary());
+    }
+
+    Guid userId = user.GetUserId();
+
+    var todoItem = await db.Todos
+        .Where(t => t.Id == id && t.UserId == userId)
+        .FirstOrDefaultAsync();
+
+    if (todoItem is null)
+    {
+        return Results.NotFound();
     }
 
     todoItem.IsCompleted = dto.IsCompleted!.Value;
     await db.SaveChangesAsync();
 
     return Results.Ok(ResponseTodoItemDto.FromEntity(todoItem));
-});
+})
+.RequireAuthorization();
 
 
 app.MapPatch("/tasks/{id:guid}/due", async (
     Guid id,
     TodoItemDbContext db,
     DueTodoItemDtoValidator validator,
-    DueTodoItemDto dto) =>
+    DueTodoItemDto dto,
+    ClaimsPrincipal user) =>
 {
-    var todoItem = await db.Todos.FindAsync(id);
-
-    if (todoItem is null)
-    {
-        return Results.NotFound();
-    }
-
     var validationResult = await validator.ValidateAsync(dto);
 
     if (!validationResult.IsValid)
@@ -266,29 +272,45 @@ app.MapPatch("/tasks/{id:guid}/due", async (
         return Results.ValidationProblem(validationResult.ToDictionary());
     }
 
+    Guid userId = user.GetUserId();
+
+    var todoItem = await db.Todos
+        .Where(t => t.Id == id && t.UserId == userId)
+        .FirstOrDefaultAsync();
+
+    if (todoItem is null)
+    {
+        return Results.NotFound();
+    }
+
     todoItem.DueAt = dto.DueAt;
     await db.SaveChangesAsync();
 
     return Results.Ok(ResponseTodoItemDto.FromEntity(todoItem));
-});
+})
+.RequireAuthorization();
 
 app.MapPut("/tasks/{id:guid}", async (
     Guid id,
     TodoItemDbContext db,
     IValidator<PutTodoItemDto> validator,
-    PutTodoItemDto todoItemDto) =>
+    PutTodoItemDto todoItemDto,
+    ClaimsPrincipal user) =>
 {
-    var oldTodo = await db.Todos.FindAsync(id);
-
-    if (oldTodo is null)
-    {
-        return Results.NotFound();
-    }
-
     var validationResult = await validator.ValidateAsync(todoItemDto);
     if (!validationResult.IsValid)
     {
         return Results.ValidationProblem(validationResult.ToDictionary());
+    }
+
+    Guid userId = user.GetUserId();
+    var oldTodo = await db.Todos
+        .Where(t => t.Id == id && t.UserId == userId)
+        .FirstOrDefaultAsync();
+
+    if (oldTodo is null)
+    {
+        return Results.NotFound();
     }
 
     oldTodo.Title = todoItemDto.Title;
@@ -299,13 +321,20 @@ app.MapPut("/tasks/{id:guid}", async (
     await db.SaveChangesAsync();
 
     return Results.NoContent();
-});
+})
+.RequireAuthorization();
 
 app.MapDelete("/tasks/{id:guid}", async (
     Guid id,
-    TodoItemDbContext db) =>
+    TodoItemDbContext db,
+    ClaimsPrincipal user) =>
 {
-    var todoItem = await db.Todos.FindAsync(id);
+    Guid userId = user.GetUserId();
+
+    var todoItem = await db.Todos
+        .Where(t => t.Id == id && t.UserId == userId)
+        .FirstOrDefaultAsync();
+
     if (todoItem is null)
     {
         return Results.NotFound();
@@ -315,7 +344,8 @@ app.MapDelete("/tasks/{id:guid}", async (
     await db.SaveChangesAsync();
 
     return Results.NoContent();
-});
+})
+.RequireAuthorization();
 
 app.MapPost("/api/auth/register", async (
     RegisterRequestDto dto,
